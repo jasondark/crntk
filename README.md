@@ -30,3 +30,6 @@ To get running quickly, from any terminal (OSX, Linux, Windows+WSL, or Windows+m
 If that works, you're in business. The Makefile uses gcc by default and also compiles with -fopenmp:
 the crntk_id_apply() and crntk_tr_apply() methods are fully parallelized. If your state-space is very small,
 your program might run faster by disabling Openmp (e.g. removing that flag).
+
+## Funding Acknowledgment
+The core ideas of this software were developed while I was a graduate student at the University of California, Merced, where I received both intramural funding from the applied mathematics department and extramural funding from an NSF grant. The current implementation was developed while a postdoc at the University of California, Irvine, where my salary was derived from a DARPA grant. The content is solely the responsibility of the author and does not necessarily represent the official views of either of these agencies.
