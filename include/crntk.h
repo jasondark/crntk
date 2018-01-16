@@ -76,7 +76,7 @@ typedef struct {
 
 // used as an internal method, can be used externally. Given an array [n1,n2,n3,...], gives the integer
 // offset corresponding to that state. Not defined if the state does not satisfy the conservation laws
-size_t crnkt_index_of(const crntk_crn *, const size_t *);
+size_t crntk_index_of(const crntk_crn *, const size_t *);
 
 
 // Finally, these 2 are the matrix methods intended for normal user consumption.
