@@ -56,12 +56,9 @@ int main(int argc, char** argv) {
 
     // Goal: Find a vector in the nullspace of A, where the CME reads p'=Ap.
     // Observations: All eigenvalues of A are non-positive by construction.
-    // Calculation: 1. Find the dominant eigenvalue (lambda) via power-iteration
-    //              2. Find the dominant eigenvector of (A-lambda*I) -- this corresponds
-    //                 to the zero-eigenvector of A.
-    // Optimizations: A and tr(A) have the same eigenvalues. When parallelized, A
-    //                uses atomic operations (slow) while tr(A) does not. Thus we
-    //                actually do power iteration on tr(A) instead to find lambda.
+    // Calculation: 1. Apply Gershgorin's circle theorem to shift matrix by a positive amount.
+    //                 This makes the least dominant eigenvector (the zero one) the most dominant.
+    //              2. Find this eigenvector by power iteration.
 
     // we initialize some memory to store the intermediate vectors
     const size_t len = crntk_dim(demo); // the number of unique states
@@ -69,60 +66,34 @@ int main(int argc, char** argv) {
     double *x1 = calloc(len, sizeof(double));
     // scratch variables
     double *swap;
-    double vals[2] = { 0.0, 0.0 };
+    double temp;
     double norm;
 
-    // First power iteration: find the dominant eigenvalue
-    double eigenvalue = 0.0;
-    x0[0] = 1.0; // simple initial guess hopefully not in the nullspace of tr(A)
-    do  {
-        // compute x1 = tr(A)x0
-        crntk_tr_apply(demo, x0, x1);
-
-        // approximate the eigenvalue
-        vals[0] = 0.0;
-        vals[1] = 0.0;
-        for (size_t i = 0; i < len; i++) {
-            vals[0] += x0[i]*x1[i];
-            vals[1] += x1[i]*x1[i];
-        }
-
-        norm = fabs(eigenvalue - vals[0]);
-        eigenvalue = vals[0];
-
-        // cleanup for next iteration:
-        // swap the vectors
-        swap = x1;
-        x1 = x0;
-        x0 = swap;
-        // normalize x0
-        vals[0] = 1.0 / sqrt(vals[1]);
-        for (size_t i = 0; i < len; i++) {
-            x0[i] *= vals[0];
-        }
-    } while (norm > tol);
-
-    // Second power iteration: shift the matrix, find the new dominant eigenvector
-    // first, reset the initial guess
-    x0[0] = 1.0;
-    for (size_t i = 1; i < len; i++) {
-        x0[i] = 0.0;
+    // get the diagonal elements and find the biggest one (most negative)
+    double shift = 0.0;
+    crntk_diag(demo, x1);
+    for (size_t i = 0; i < len; i++) {
+        shift = fmin(shift, x1[i]);
     }
+    shift *= -2.0;
+
+    // Power iteration: shift the matrix, find the new dominant eigenvector
+    x0[0] = 1.0; // initial guess: x0=(1,0,0,...)
     do  {
-        // Compute x1 = Ax0 (note, we really want x1 = (A-lambda*I)x0)
+        // Compute x1 = Ax0 (note, we really want x1 = (A+shift*I)x0)
         crntk_id_apply(demo, x0, x1);
-        // Here we correct the -lambda*I*x0 bit, as well as compute the L1 normalization
-        vals[0] = 0.0;
+        // Here we correct the +shift*x0 bit, as well as compute the L1 normalization
+        temp = 0.0;
         for (size_t i = 0; i < len; i++) {
-            x1[i] -= eigenvalue * x0[i];
-            vals[0] += fabs(x1[i]);
+            x1[i] += shift * x0[i];
+            temp += fabs(x1[i]);
         }
         // normalize and compute maxnorm for convergence check
-        vals[1] = 1.0 / vals[0];
-        x1[0] *= vals[1];
+        temp = 1.0 / temp;
+        x1[0] *= temp;
         norm = fabs(x0[0] - x1[0]);
         for (size_t i = 1; i < len; i++) {
-            x1[i] *= vals[1];
+            x1[i] *= temp;
             norm = fmax(norm, fabs(x0[i]-x1[i]));
         }
         // swap x0 and x1 for next iteration

@@ -84,7 +84,7 @@ void crntk_destroy(crntk* crn);
 
 
 
-/* the next 2 functions are helper functions for reading-out quantities of interest */
+/* the next 4 functions are helper functions for reading-out quantities of interest */
 
 /// @brief computes the array offset of state @p n
 /// @param[in] crn an opaque pointer
@@ -104,6 +104,10 @@ size_t crntk_dim(const crntk* crn);
 const size_t* crntk_state(const crntk* crn, const size_t i);
 
 
+/// @brief fills a vector with the diagonal elements of the matrix
+/// @param[in]    crn an opaque pointer
+/// @param[inout] d   the vector to fill
+void crntk_diag(const crntk* crn, double* d);
 
 
 /* here are some builtin kinetic schemes to be used by the user -- note that *

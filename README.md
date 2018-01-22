@@ -18,9 +18,13 @@ Please feel free to email me with questions if you have any.
 ## Notes
 To get running quickly, from any terminal (OSX, Linux, Windows+WSL, or Windows+msys):
 > git clone https://github.com/jasondark/crntk
+
 > cd crntk
+
 > make examples
+
 > ./bin/nullspace 10 1 1 1e-6
+
 
 If that works, you're in business. The Makefile uses gcc by default and also compiles with -fopenmp:
 the `crntk_id_apply()` and `crntk_tr_apply()` methods are fully parallelized. If your state-space is very small,

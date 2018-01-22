@@ -328,6 +328,29 @@ const size_t* crntk_state(const crntk* crn, const size_t i) {
     return crn->states + crn->n_reactants*i;
 }
 
+void crntk_diag(const crntk* crn, double* d) {
+    #pragma omp parallel
+    {
+        size_t n1[crn->n_reactants];
+        double propensity;
+        bool valid;
+    
+        #pragma omp for
+        for (size_t i = 0; i < crn->n_states; i++) {
+            // n0 is the current state, n1 is a temporary variable for neighboring states
+            const size_t *n0 = crn->states + crn->n_reactants * i;
+
+            // a temporary variable for the reaction propensity and neighbors
+            double flux = 0.0;
+
+            for (size_t k = 0; k < crn->n_reactions; k++) {
+                react(crn, k, n0, n1, &propensity, &valid);
+                flux -= propensity;
+            }
+            d[i] = flux;
+        }
+    }
+}
 
 
 // y = id(A)x
