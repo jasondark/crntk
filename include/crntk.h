@@ -103,11 +103,12 @@ size_t crntk_dim(const crntk* crn);
 /// @return        the pointer to the state
 const size_t* crntk_state(const crntk* crn, const size_t i);
 
-
 /// @brief fills a vector with the diagonal elements of the matrix
 /// @param[in]    crn an opaque pointer
 /// @param[inout] d   the vector to fill
 void crntk_diag(const crntk* crn, double* d);
+
+
 
 
 /* here are some builtin kinetic schemes to be used by the user -- note that *
@@ -165,18 +166,6 @@ void crntk_tr_sor_forward(const crntk* crn, double w, double* x);
 /// @param[in]    w   the relaxation parameter
 /// @param[inout] x   the input (and output) vector
 void crntk_tr_sor_backward(const crntk* crn, double w, double* x);
-
-/// @brief Computes x=inv(w*U-D)*D*inv(w*L-D)*x, given tr(A)=L-D+U
-/// @param[in]    crn an opaque pointer
-/// @param[in]    w   the relaxation parameter
-/// @param[inout] x   the input (and output) vector
-void crntk_tr_ssor_forward(const crntk* crn, double w, double* x);
-
-/// @brief Computes x=inv(w*L-D)*D*inv(w*U-D)*x, given tr(A)=L-D+U
-/// @param[in]    crn an opaque pointer
-/// @param[in]    w   the relaxation parameter
-/// @param[inout] x   the input (and output) vector
-void crntk_tr_ssor_backward(const crntk* crn, double w, double* x);
 
 #endif
 

@@ -488,18 +488,6 @@ static inline void jacobi(const crntk* crn, double *x) {
 }
 
 
-void crntk_tr_ssor_forward(const crntk* crn, double omega, double *x) {
-    crntk_tr_sor_forward(crn, omega, x);
-    jacobi(crn, x);
-    crntk_tr_sor_backward(crn, omega, x);
-}
-void crntk_tr_ssor_backward(const crntk* crn, double omega, double *x) {
-    crntk_tr_sor_backward(crn, omega, x);
-    jacobi(crn, x);
-    crntk_tr_sor_forward(crn, omega, x);
-}
-
-
 
 
 
