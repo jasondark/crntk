@@ -66,11 +66,10 @@ struct crntk_crn {
     size_t **table;
 
     // internal builder quantities
-    crntk_reactant* _ptr_reactant;
-    size_t* _ptr_complex;
-    crntk_reaction* _ptr_reaction;
-    size_t* _ptr_constraint;
-    size_t* _ptr_value;
+    size_t _i_reactant;
+    size_t _i_complex;
+    size_t _i_reaction;
+    size_t _i_constraint;
 };
 
 
@@ -541,54 +540,58 @@ bool crntk_init(crntk **out, const size_t n_reactants, const size_t n_complexes,
         return false;
     }
 
-    crn->_ptr_reactant   = crn->reactants;
-    crn->_ptr_complex    = crn->complexes;
-    crn->_ptr_reaction   = crn->reactions;
-    crn->_ptr_constraint = crn->constraints;
-    crn->_ptr_value      = crn->constraint_values;
+    crn->_i_reactant   = 0;
+    crn->_i_complex    = 0;
+    crn->_i_reaction   = 0;
+    crn->_i_constraint = 0;
 
     *out = crn;
 
     return true;
 }
 
-void crntk_add_reactant(crntk *crn, double (*affinity)(size_t,size_t,const double*), double *data) {
-    crn->_ptr_reactant->affinity = affinity;
-    crn->_ptr_reactant->data = data;
-    crn->_ptr_reactant++;
+size_t crntk_add_reactant(crntk *crn, double (*affinity)(size_t,size_t,const double*), double *data) {
+    crntk_reactant* ptr = &crn->reactants[crn->_i_reactant];
+    ptr->affinity = affinity;
+    ptr->data = data;
+    return crn->_i_reactant++;
 }
 
-void crntk_add_complex(crntk *crn, ...) {
+size_t crntk_add_complex(crntk *crn, ...) {
     va_list va;
     va_start(va, crn);
+    size_t* ptr = &crn->complexes[crn->n_reactants * crn->_i_complex];
     for (size_t i = 0; i < crn->n_reactants; i++) {
-        *crn->_ptr_complex = va_arg(va, size_t);
-        crn->_ptr_complex++;
+        *ptr = va_arg(va, size_t);
+        ptr++;
     }
     va_end(va);
+    return crn->_i_complex++;
 }
 
-void crntk_add_reaction(crntk *crn, double rate, size_t lhs, size_t rhs) {
-    crn->_ptr_reaction->rate = rate;
-    crn->_ptr_reaction->lhs = crn->complexes + crn->n_reactants * lhs;
-    crn->_ptr_reaction->rhs = crn->complexes + crn->n_reactants * rhs;
-    crn->_ptr_reaction++;
+size_t crntk_add_reaction(crntk *crn, double rate, size_t lhs, size_t rhs) {
+    crntk_reaction* ptr = &crn->reactions[crn->_i_reaction];
+    ptr->rate = rate;
+    ptr->lhs = crn->complexes + crn->n_reactants * lhs;
+    ptr->rhs = crn->complexes + crn->n_reactants * rhs;
+    return crn->_i_reaction++;
 }
 
-void crntk_add_constraint(crntk *crn, size_t value, ...) {
+size_t crntk_add_constraint(crntk *crn, size_t value, ...) {
     va_list va;
     va_start(va, value);
 
-    *crn->_ptr_value = value;
-    crn->_ptr_value++;
+    size_t* ptr = &crn->constraints[crn->_i_constraint];
+
+    crn->constraint_values[crn->_i_constraint] = value;
 
     for (size_t i = 0; i < crn->n_reactants; i++) {
-        *crn->_ptr_constraint = va_arg(va, size_t);
-        crn->_ptr_constraint += crn->n_constraints;
+        *ptr = va_arg(va, size_t);
+        ptr += crn->n_constraints;
     }
-    crn->_ptr_constraint -= crn->n_constraints * crn->n_reactants - 1;
-
     va_end(va);
+
+    return crn->_i_constraint++;
 }
 
 bool crntk_finalize(crntk *crn) {

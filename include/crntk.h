@@ -52,25 +52,35 @@ bool crntk_init(crntk** crn, const size_t n_reactants, const size_t n_complexes,
 /// @param[inout] crn      an opaque pointer
 /// @param[in]    affinity the kinetics associated with the reactant (e.g. &crntk_kinetics_mass_action)
 /// @param[in]    data     arbitrary data to be passed to @p affinity when evaluated
-void crntk_add_reactant(crntk* crn, double (*affinity)(size_t,size_t,const double*), double *data);
+/// @return                a unique number representing the reactant
+size_t crntk_add_reactant(crntk* crn, double (*affinity)(size_t,size_t,const double*), double *data);
 
 /// @brief define the next complex in the chemical reaction network (CRN)
 /// @param[inout] crn  an opaque pointer
 /// @param[in]    ...  the multipliers of each (ordered) reactant in this complex (e.g. for reactants A, B, C, the complex 2B+C would be represented by 0, 2, 1)
-void crntk_add_complex(crntk* crn, ...);
+/// @return            a unique number representing the complex -- useful when used in conjunction with `crntk_add_reaction`
+size_t crntk_add_complex(crntk* crn, ...);
 
 /// @brief define the next reaction in the chemical reaction network (CRN)
 /// @param[inout] crn  an opaque pointer
 /// @param[in]    rate the stochastic rate constant (units of 1/time)
 /// @param[in]    lhs  the offset of the source complex
 /// @param[in]    rhs  the offset of the destination complex
-void crntk_add_reaction(crntk* crn, double rate, size_t lhs, size_t rhs);
+/// @return            a unique number representing the reaction -- useful when redefining a reaction's rate constant
+size_t crntk_add_reaction(crntk* crn, double rate, size_t lhs, size_t rhs);
+
+/// @brief modify an already-defined reaction to have the specified rate
+/// @param[inout] crn  an opqaue pointer
+/// @param[in]    rxn  the reaction id to modify
+/// @param[in]    rate the new rate constant
+void crntk_set_reaction_rate(crntk* crn, size_t rxn, double rate);
 
 /// @brief define the next linear constraint in the chemical reaction network (CRN)
 /// @param[inout] crn   an opaque pointer
 /// @param[in]    value the value that the inner product must obtain
 /// @param[in]    ...   the multipliers of each (ordered) reactant in the conservation law
-void crntk_add_constraint(crntk* crn, size_t value, ...);
+/// @return             a unique number representing the constraint
+size_t crntk_add_constraint(crntk* crn, size_t value, ...);
 
 /// @brief finalize the chemical reaction network, after specifying each of its components
 /// @param[inout] crn an opaque pointer
