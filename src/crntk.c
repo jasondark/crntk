@@ -577,6 +577,10 @@ size_t crntk_add_reaction(crntk *crn, double rate, size_t lhs, size_t rhs) {
     return crn->_i_reaction++;
 }
 
+void crntk_set_reaction_rate(crntk* crn, size_t rxn, double rate) {
+    crn->reactions[rxn].rate = rate;
+}
+
 size_t crntk_add_constraint(crntk *crn, size_t value, ...) {
     va_list va;
     va_start(va, value);
