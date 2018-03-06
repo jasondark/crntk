@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     // We specify the chemical reaction network below then compute this distribution.
 
     // Initialize the system
-    crntk *demo;
+    crntk demo;
     if (!crntk_init(&demo, 2, 2, 2, 1)) {
         printf("Could not allocate memory for crntk stage 1\n");
         return 0;

@@ -10,7 +10,7 @@ size_t bicgstab(const void*, void (*)(const void*, const double*, double*), cons
 
 // an implementation of matrix-multiplication with a preconditioner
 void matmul(const void* data, const double *x, double *y) {
-    const crntk *crn = (crntk*) data;
+    const crntk crn = (crntk) data;
 
     // apply tr(A)
     crntk_tr_apply(crn, x, y);
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     // For fun, we will also compare this to the classic Michaelis-Menten approximation
 
     // Initialize the system
-    crntk *demo;
+    crntk demo;
     if (!crntk_init(&demo, 3, 3, 3, 2)) {
         printf("Could not allocate memory for crntk stage 1\n");
         return 0;

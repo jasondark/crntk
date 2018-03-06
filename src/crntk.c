@@ -76,7 +76,7 @@ struct crntk_crn {
 // the next 5 functions are internal helper functions
 static inline void react(
     // input parameters
-    const crntk *crn, const size_t rxn_index, const size_t *n0,
+    const crntk crn, const size_t rxn_index, const size_t *n0,
     // output parameters
     size_t *n1, double *propensity, bool *bounded)
 {
@@ -118,7 +118,7 @@ static inline size_t tensor_delta(size_t *b, size_t *c, size_t *n, const size_t 
     }
     return min;
 }
-static bool init_lattice_table(crntk *lattice) {
+static bool init_lattice_table(crntk lattice) {
     const size_t m = lattice->n_constraints, n = lattice->n_reactants;
     size_t *A = lattice->constraints, *b = lattice->constraint_values;
 
@@ -178,7 +178,7 @@ static bool init_lattice_table(crntk *lattice) {
     lattice->table = table;
     return true;
 }
-static bool init_lattice_states(crntk *lattice) {
+static bool init_lattice_states(crntk lattice) {
     const size_t m = lattice->n_constraints, n = lattice->n_reactants;
 
     const size_t dim = lattice->table[n-1][tensor_offset(lattice->constraint_values, m, lattice->constraint_values)];
@@ -298,7 +298,7 @@ double crntk_kinetics_hill(size_t x, size_t n, const double *data) {
 
 
 
-size_t crntk_index_of(const crntk *lattice, const size_t *index) {
+size_t crntk_index_of(const crntk lattice, const size_t *index) {
     const size_t m = lattice->n_constraints, n = lattice->n_reactants;
     const size_t nullity = n-m;
     size_t *A = lattice->constraints;
@@ -319,15 +319,15 @@ size_t crntk_index_of(const crntk *lattice, const size_t *index) {
 
     return offset;
 }
-size_t crntk_dim(const crntk *crn) {
+size_t crntk_dim(const crntk crn) {
     return crn->n_states;
 }
 
-const size_t* crntk_state(const crntk* crn, const size_t i) {
+const size_t* crntk_state(const crntk crn, const size_t i) {
     return crn->states + crn->n_reactants*i;
 }
 
-void crntk_diag(const crntk* crn, double* d) {
+void crntk_diag(const crntk crn, double* d) {
     #pragma omp parallel
     {
         size_t n1[crn->n_reactants];
@@ -353,7 +353,7 @@ void crntk_diag(const crntk* crn, double* d) {
 
 
 // y = id(A)x
-void crntk_id_apply(const crntk* crn, const double *x, double *y) {
+void crntk_id_apply(const crntk crn, const double *x, double *y) {
     // init y to zero vector
     memset(y, 0, crn->n_states * sizeof(double));
 
@@ -387,7 +387,7 @@ void crntk_id_apply(const crntk* crn, const double *x, double *y) {
 
 
 // y = tr(A)x
-void crntk_tr_apply(const crntk* crn, const double *x, double *y) {
+void crntk_tr_apply(const crntk crn, const double *x, double *y) {
     // init y to zero vector
     memset(y, 0, crn->n_states * sizeof(double));
 
@@ -414,7 +414,7 @@ void crntk_tr_apply(const crntk* crn, const double *x, double *y) {
 
 // Given, tr(A) = L+U-D...
 // (1) compute x <- inv(w*L-D) x
-void crntk_tr_sor_forward(const crntk* crn, double omega, double *x) {
+void crntk_tr_sor_forward(const crntk crn, double omega, double *x) {
     size_t n1[crn->n_reactants];
     for (size_t i = 0; i < crn->n_states; i++) {
         // n0 is the current state, n1 is a temporary variable for neighboring states
@@ -438,7 +438,7 @@ void crntk_tr_sor_forward(const crntk* crn, double omega, double *x) {
     }
 }
 // (2) compute x <- inv(w*U-D) x
-void crntk_tr_sor_backward(const crntk* crn, double omega, double *x) {
+void crntk_tr_sor_backward(const crntk crn, double omega, double *x) {
     size_t n1[crn->n_reactants];
     for (size_t i = crn->n_states; i-- > 0;) {
         // n0 is the current state, n1 is a temporary variable for neighboring states
@@ -462,7 +462,7 @@ void crntk_tr_sor_backward(const crntk* crn, double omega, double *x) {
     }
 }
 
-static inline void jacobi(const crntk* crn, double *x) {
+static inline void jacobi(const crntk crn, double *x) {
     #pragma omp parallel
     {
         size_t n1[crn->n_reactants];
@@ -501,8 +501,8 @@ static inline void jacobi(const crntk* crn, double *x) {
 //            This is a possible memory/speed trade-off to be considered later.
 
 
-bool crntk_init(crntk **out, const size_t n_reactants, const size_t n_complexes, const size_t n_reactions, const size_t n_constraints) {
-    crntk *crn = calloc(1, sizeof(crntk));
+bool crntk_init(crntk *out, const size_t n_reactants, const size_t n_complexes, const size_t n_reactions, const size_t n_constraints) {
+    crntk crn = calloc(1, sizeof(**out));
     crn->n_reactants   = n_reactants;
     crn->n_complexes   = n_complexes;
     crn->n_reactions   = n_reactions;
@@ -550,14 +550,14 @@ bool crntk_init(crntk **out, const size_t n_reactants, const size_t n_complexes,
     return true;
 }
 
-size_t crntk_add_reactant(crntk *crn, double (*affinity)(size_t,size_t,const double*), double *data) {
+size_t crntk_add_reactant(crntk crn, double (*affinity)(size_t,size_t,const double*), double *data) {
     crntk_reactant* ptr = &crn->reactants[crn->_i_reactant];
     ptr->affinity = affinity;
     ptr->data = data;
     return crn->_i_reactant++;
 }
 
-size_t crntk_add_complex(crntk *crn, ...) {
+size_t crntk_add_complex(crntk crn, ...) {
     va_list va;
     va_start(va, crn);
     size_t* ptr = &crn->complexes[crn->n_reactants * crn->_i_complex];
@@ -569,7 +569,7 @@ size_t crntk_add_complex(crntk *crn, ...) {
     return crn->_i_complex++;
 }
 
-size_t crntk_add_reaction(crntk *crn, double rate, size_t lhs, size_t rhs) {
+size_t crntk_add_reaction(crntk crn, double rate, size_t lhs, size_t rhs) {
     crntk_reaction* ptr = &crn->reactions[crn->_i_reaction];
     ptr->rate = rate;
     ptr->lhs = crn->complexes + crn->n_reactants * lhs;
@@ -577,11 +577,11 @@ size_t crntk_add_reaction(crntk *crn, double rate, size_t lhs, size_t rhs) {
     return crn->_i_reaction++;
 }
 
-void crntk_set_reaction_rate(crntk* crn, size_t rxn, double rate) {
+void crntk_set_reaction_rate(crntk crn, size_t rxn, double rate) {
     crn->reactions[rxn].rate = rate;
 }
 
-size_t crntk_add_constraint(crntk *crn, size_t value, ...) {
+size_t crntk_add_constraint(crntk crn, size_t value, ...) {
     va_list va;
     va_start(va, value);
 
@@ -598,7 +598,7 @@ size_t crntk_add_constraint(crntk *crn, size_t value, ...) {
     return crn->_i_constraint++;
 }
 
-bool crntk_finalize(crntk *crn) {
+bool crntk_finalize(crntk crn) {
     // check the conservation of each reaction
     for (size_t i = 0; i < crn->n_reactions; i++) {
         crn->reactions[i].conservative = true;
@@ -633,7 +633,7 @@ bool crntk_finalize(crntk *crn) {
     return true;
 }
 
-void crntk_destroy(crntk *crn) {
+void crntk_destroy(crntk crn) {
     free(crn->reactants);
     free(crn->complexes);
     free(crn->reactions);
@@ -645,3 +645,4 @@ void crntk_destroy(crntk *crn) {
     free(crn->states);
     free(crn);
 }
+
