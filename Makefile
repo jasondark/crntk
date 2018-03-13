@@ -1,4 +1,4 @@
-CC := gcc -fopenmp
+CC := gcc
 CFLAGS := -std=c99 -Wall -Wextra -Wpedantic -Wno-unused-parameter -mtune=native -march=native -O2
 
 .PHONY: dirs examples clean

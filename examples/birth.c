@@ -62,13 +62,20 @@ int main(int argc, char** argv) {
     crntk_add_reactant(demo, &crntk_kinetics_mass_action, NULL); // ES
 
     // constraints:
-    crntk_add_constraint(demo, S0, 1, 0, 1); // S0 = S+ES
-    crntk_add_constraint(demo, E0, 0, 1, 1); // E0 = E+ES
+    size_t cplx[3];
+
+    cplx[0] = 1; cplx[1] = 0; cplx[2] = 1;
+    crntk_add_constraint(demo, S0, cplx); // S0 = S+ES
+    cplx[0] = 0; cplx[1] = 1; cplx[2] = 1;
+    crntk_add_constraint(demo, E0, cplx); // E0 = E+ES
 
     // complexes:
-    crntk_add_complex(demo, 1, 1, 0); // S+E
-    crntk_add_complex(demo, 0, 0, 1); // ES
-    crntk_add_complex(demo, 0, 0, 0); // 0
+    cplx[0] = 1; cplx[1] = 1; cplx[2] = 0;
+    crntk_add_complex(demo, cplx); // S+E
+    cplx[0] = 0; cplx[1] = 0; cplx[2] = 1;
+    crntk_add_complex(demo, cplx); // ES
+    cplx[0] = 0; cplx[1] = 0; cplx[2] = 0;
+    crntk_add_complex(demo, cplx); // 0
 
     // reactions:
     crntk_add_reaction(demo, kf, 0, 1); // Complex 0 -> Complex 1

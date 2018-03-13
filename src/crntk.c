@@ -25,7 +25,6 @@
  * POSSIBILITY OF SUCH DAMAGE.                                                 *
  ******************************************************************************/
 
-#include <stdarg.h> // varargs for add_complex and add_constraint
 #include <stdlib.h> // calloc
 #include <string.h> // memset, memcpy
 
@@ -188,7 +187,8 @@ static bool init_lattice_states(crntk lattice) {
         return false;
 
     size_t b[m], x[n];
-    memcpy(b, lattice->constraint_values, m*sizeof(size_t));
+    for (size_t i = 0; i < m; i++)
+        b[i] = lattice->constraint_values[i];
     for (size_t i = 0; i < n; i++)
         x[i] = 0;
 
@@ -202,15 +202,16 @@ static bool init_lattice_states(crntk lattice) {
         if (j == 0) {
             for (k = 0; k < m; k++) {
                 // if no more increments are possible we are done
-                if (lattice->constraints[k+j*m] > b[k]) {
+                if (lattice->constraints[k] > b[k]) {
                     finished = true;
                     break;
                 }
+                else {
+                    b[k] -= lattice->constraints[k];
+                }
             }
             if (!finished) {
-                x[j] += 1;
-                for (k = 0; k < m; k++)
-                    b[k] -= lattice->constraints[k+j*m];
+                x[0] += 1;
                 j = n-1;
             }
             continue;
@@ -218,6 +219,11 @@ static bool init_lattice_states(crntk lattice) {
 
         // we can easily check if there are solutions. if not, let's not waste time
         if (lattice->table[n-1-j][tensor_offset(b, m, lattice->constraint_values)] == 0) {
+            if (x[j] != 0) {
+                for (k = 0; k < m; k++)
+                    b[k] += x[j] * lattice->constraints[k+j*m];
+                x[j] = 0;
+            }
             j -= 1;
             continue;
         }
@@ -557,15 +563,12 @@ size_t crntk_add_reactant(crntk crn, double (*affinity)(size_t,size_t,const doub
     return crn->_i_reactant++;
 }
 
-size_t crntk_add_complex(crntk crn, ...) {
-    va_list va;
-    va_start(va, crn);
+size_t crntk_add_complex(crntk crn, const size_t* cplx) {
     size_t* ptr = &crn->complexes[crn->n_reactants * crn->_i_complex];
     for (size_t i = 0; i < crn->n_reactants; i++) {
-        *ptr = va_arg(va, size_t);
+        *ptr = cplx[i];
         ptr++;
     }
-    va_end(va);
     return crn->_i_complex++;
 }
 
@@ -581,19 +584,14 @@ void crntk_set_reaction_rate(crntk crn, size_t rxn, double rate) {
     crn->reactions[rxn].rate = rate;
 }
 
-size_t crntk_add_constraint(crntk crn, size_t value, ...) {
-    va_list va;
-    va_start(va, value);
-
+size_t crntk_add_constraint(crntk crn, size_t value, const size_t* law) {
     size_t* ptr = &crn->constraints[crn->_i_constraint];
-
     crn->constraint_values[crn->_i_constraint] = value;
 
     for (size_t i = 0; i < crn->n_reactants; i++) {
-        *ptr = va_arg(va, size_t);
+        *ptr = law[i];
         ptr += crn->n_constraints;
     }
-    va_end(va);
 
     return crn->_i_constraint++;
 }

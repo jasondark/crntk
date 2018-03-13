@@ -58,9 +58,9 @@ size_t crntk_add_reactant(crntk crn, double (*affinity)(size_t,size_t,const doub
 
 /// @brief define the next complex in the chemical reaction network (CRN)
 /// @param[inout] crn  an opaque pointer
-/// @param[in]    ...  the multipliers of each (ordered) reactant in this complex (e.g. for reactants A, B, C, the complex 2B+C would be represented by 0, 2, 1)
+/// @param[in]    cplx the multipliers of each (ordered) reactant in this complex (e.g. for reactants A, B, C, the complex 2B+C would be represented by 0, 2, 1)
 /// @return            a unique number representing the complex -- useful when used in conjunction with `crntk_add_reaction`
-size_t crntk_add_complex(crntk crn, ...);
+size_t crntk_add_complex(crntk crn, const size_t* cplx);
 
 /// @brief define the next reaction in the chemical reaction network (CRN)
 /// @param[inout] crn  an opaque pointer
@@ -79,9 +79,9 @@ void crntk_set_reaction_rate(crntk crn, size_t rxn, double rate);
 /// @brief define the next linear constraint in the chemical reaction network (CRN)
 /// @param[inout] crn   an opaque pointer
 /// @param[in]    value the value that the inner product must obtain
-/// @param[in]    ...   the multipliers of each (ordered) reactant in the conservation law
+/// @param[in]    law   the multipliers of each (ordered) reactant in the conservation law
 /// @return             a unique number representing the constraint
-size_t crntk_add_constraint(crntk crn, size_t value, ...);
+size_t crntk_add_constraint(crntk crn, size_t value, const size_t* law);
 
 /// @brief finalize the chemical reaction network, after specifying each of its components
 /// @param[inout] crn an opaque pointer
@@ -112,7 +112,7 @@ size_t crntk_dim(const crntk crn);
 /// @param[in] crn an opaque pointer
 /// @param[in] i   the integer offset
 /// @return        the pointer to the state
-const size_t* crntk_state(const crntk crn, const size_t i);
+const size_t* crntk_state(const crntk crn, size_t i);
 
 /// @brief fills a vector with the diagonal elements of the matrix
 /// @param[in]    crn an opaque pointer
@@ -162,7 +162,7 @@ void crntk_id_apply(const crntk crn, const double* x, double* y);
 
 /// @brief      Computes y=xA, where A is from the chemical master equation
 /// @param[in]  crn an opaque pointer
-/// @param[in]  x   the input vectpr
+/// @param[in]  x   the input vector
 /// @param[out] y   the output vector
 void crntk_tr_apply(const crntk crn, const double* x, double* y);
 

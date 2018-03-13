@@ -65,15 +65,23 @@ int main(int argc, char** argv) {
     crntk_add_reactant(demo, &crntk_kinetics_mass_action, NULL); // A
     crntk_add_reactant(demo, &crntk_kinetics_fsp, NULL);         // Z
 
+    size_t cplx[3];
+
     // constraints: just one conservation law at work here
-    crntk_add_constraint(demo, n,   1, 1, 0); //   n = X+A
-    crntk_add_constraint(demo, n-1, 0, 1, 1); // n-1 = A+Z
+    cplx[0] = 1; cplx[1] = 1; cplx[2] = 0;
+    crntk_add_constraint(demo, n,   cplx); //   n = X+A
+    cplx[0] = 0; cplx[1] = 1; cplx[2] = 1;
+    crntk_add_constraint(demo, n-1, cplx); // n-1 = A+Z
 
     // complexes: each side of each reaction
-    crntk_add_complex(demo, 1, 1, 0); // X+A
-    crntk_add_complex(demo, 2, 0, 1); // 2X+Z
-    crntk_add_complex(demo, 1, 0, 1); // X+Z
-    crntk_add_complex(demo, 0, 1, 0); // A
+    cplx[0] = 1; cplx[1] = 1; cplx[2] = 0;
+    crntk_add_complex(demo, cplx); // X+A
+    cplx[0] = 2; cplx[1] = 0; cplx[2] = 1;
+    crntk_add_complex(demo, cplx); // 2X+Z
+    cplx[0] = 1; cplx[1] = 0; cplx[2] = 1;
+    crntk_add_complex(demo, cplx); // X+Z
+    cplx[0] = 0; cplx[1] = 1; cplx[2] = 0;
+    crntk_add_complex(demo, cplx); // A
 
     // reactions: again, just the one reversible reaction (represented as two separate reactions)
     crntk_add_reaction(demo, a, 0, 1); // Complex 0 -> Complex 1 (X+A -> 2X+Z)

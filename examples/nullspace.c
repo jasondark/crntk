@@ -32,12 +32,17 @@ int main(int argc, char** argv) {
     crntk_add_reactant(demo, &crntk_kinetics_mass_action, NULL); // A
     crntk_add_reactant(demo, &crntk_kinetics_mass_action, NULL); // B
 
+    size_t cplx[2];
+
     // constraints: just one conservation law at work here
-    crntk_add_constraint(demo, n, 1, 2); // n = A + 2B
+    cplx[0] = 1; cplx[1] = 2;
+    crntk_add_constraint(demo, n, cplx); // n = A + 2B
 
     // complexes: just the two
-    crntk_add_complex(demo, 2, 0); // 2*A
-    crntk_add_complex(demo, 0, 1); // B
+    cplx[0] = 2; cplx[1] = 0;
+    crntk_add_complex(demo, cplx); // 2*A
+    cplx[0] = 0; cplx[1] = 1;
+    crntk_add_complex(demo, cplx); // B
 
     // reactions: again, just the one reversible reaction (represented as two separate reactions)
     crntk_add_reaction(demo, kf, 0, 1); // 2A -> B
